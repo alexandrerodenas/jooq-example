@@ -23,7 +23,18 @@
                 <constraints nullable="true" />
             </column>
 
+            <column name="user_id" type="bigint">
+                <constraints nullable="true" />
+            </column>
         </createTable>
 
+    </changeSet>
+
+    <changeSet id="Add user foreign key on car" author="arodenas">
+        <addForeignKeyConstraint baseColumnNames="user_id"
+                                 baseTableName="car"
+                                 constraintName="fk_car_user_id"
+                                 referencedColumnNames="id"
+                                 referencedTableName="user"/>
     </changeSet>
 </databaseChangeLog>
