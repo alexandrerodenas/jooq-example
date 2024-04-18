@@ -4,13 +4,10 @@ services:
   db:
     image: postgis/postgis
     restart: always
-    container_name: database
     environment:
       - POSTGRES_USER=test
       - POSTGRES_PASSWORD=test
       - POSTGRES_DB=postgres
-    expose:
-      - 5432:5432
     ports:
       - "5432:5432"
     healthcheck:
@@ -18,9 +15,10 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    networks:
+      - infra
   liquibase:
     image: test-liquibase:latest
-    container_name: liquibase
     build:
       context: ../liquibase
       dockerfile: ../liquibase/Dockerfile
@@ -29,19 +27,20 @@ services:
     environment:
       LIQUIBASE_LOG_LEVEL: "info"
       LIQUIBASE_COMMAND_CHANGELOG_FILE: "master.xml"
-      LIQUIBASE_COMMAND_URL: jdbc:postgresql://database:5432/postgres
+      LIQUIBASE_COMMAND_URL: jdbc:postgresql://db:5432/postgres
       LIQUIBASE_COMMAND_USERNAME: test
       LIQUIBASE_COMMAND_PASSWORD: test
+    networks:
+      - infra
     depends_on:
       db:
         condition: service_healthy
   end-detector:
     image: hello-world
-    container_name: end-detector
     depends_on:
       liquibase:
         condition: service_completed_successfully
 
 networks:
-  host:
-    external: true
+  infra:
+    external: false
