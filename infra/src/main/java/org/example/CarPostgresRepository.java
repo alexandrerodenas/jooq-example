@@ -2,6 +2,7 @@ package org.example;
 
 import org.jooq.DSLContext;
 import org.jooq.Record;
+import org.jooq.Records;
 
 import static org.example.database.model.tables.CarTable.CAR_TABLE;
 
@@ -18,21 +19,12 @@ public class CarPostgresRepository implements CarRepository {
 
     @Override
     public Car create(CreateCarInput createCar) {
-        Record record = dslContext
+        return dslContext
                 .insertInto(CAR_TABLE)
                 .set(CAR_TABLE.BRAND, createCar.brand())
                 .set(CAR_TABLE.PRICE, createCar.price())
-                .returningResult()
-                .fetchOne();
-        if (record == null) {
-            throw new RuntimeException(); // Custom Exception here
-        }
-        return Car
-                .builder()
-                .id(record.get(CAR_TABLE.ID))
-                .brand(record.get(CAR_TABLE.BRAND))
-                .price(record.get(CAR_TABLE.PRICE))
-                .build();
+                .returningResult(CAR_TABLE.ID, CAR_TABLE.BRAND, CAR_TABLE.PRICE)
+                .fetchOne(Records.mapping(Car::new));
     }
 
     @Override
