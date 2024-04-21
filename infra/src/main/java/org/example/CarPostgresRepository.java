@@ -1,13 +1,11 @@
 package org.example;
 
-import org.example.database.model.tables.records.CarRecord;
 import org.jooq.DSLContext;
 import org.jooq.Record;
-import org.jooq.Record1;
-
-import java.util.Objects;
 
 import static org.example.database.model.tables.CarTable.CAR_TABLE;
+
+import java.util.Optional;
 
 public class CarPostgresRepository implements CarRepository {
 
@@ -19,7 +17,7 @@ public class CarPostgresRepository implements CarRepository {
 
 
     @Override
-    public Car create(CreateCar createCar) {
+    public Car create(CreateCarInput createCar) {
         Record record = dslContext
                 .insertInto(CAR_TABLE)
                 .set(CAR_TABLE.BRAND, createCar.brand())
@@ -38,18 +36,14 @@ public class CarPostgresRepository implements CarRepository {
     }
 
     @Override
-    public Car fetch(long id) {
-        CarRecord carRecord = dslContext.selectFrom(CAR_TABLE)
+    public Optional<Car> fetch(long id) {
+        return dslContext.selectFrom(CAR_TABLE)
                 .where(CAR_TABLE.ID.eq(id))
-                .fetchOne();
-        if (carRecord == null) {
-            throw new RuntimeException(); // Custom Exception here
-        }
-        return Car
-                .builder()
-                .id(carRecord.get(CAR_TABLE.ID))
-                .brand(carRecord.get(CAR_TABLE.BRAND))
-                .price(carRecord.get(CAR_TABLE.PRICE))
-                .build();
+                .fetchOptional(it -> Car.builder()
+                    .id(it.get(CAR_TABLE.ID))
+                    .brand(it.get(CAR_TABLE.BRAND))
+                    .price(it.get(CAR_TABLE.PRICE))
+                    .build()
+                );
     }
 }
